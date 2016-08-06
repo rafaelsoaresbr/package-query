@@ -12,7 +12,7 @@ job_makepkg:
     - arch
     - docker
 
-# Docker Runner - Building your own PKGFILE
+# Docker Runner - Building your own PKGBUILD
 job_makepkg:
   stage: build
   script:
@@ -21,7 +21,7 @@ job_makepkg:
     - arch
     - docker
 
-# Shell Runner - Pulling and running a docker image (upstream repositoty or own PKGBUILD)
+# Shell Runner - Pulling and running a docker image (Cloning upstream repository)
 job_docker_build:
   stage: build
   script:
@@ -29,7 +29,18 @@ job_docker_build:
     - docker run rafaelsoares/archlinux:2016-04-09-devel /bin/sh -c "cd /home/guest && git clone https://aur.archlinux.org/package-query.git && cd package-query && makepkg -sf"
   tags:
     - arch
-    - shell
+    - shell-docker
+
+# Shell Runner - Pulling and running a docker image (Building your own PKGBUILD)
+# Requires volumes = ["/home/gitlab-runner/builds:/:rw"] (Needs testing)
+job_docker_build:
+  stage: build
+  script:
+    - docker pull rafaelsoares/archlinux:2016-04-09-devel
+    - docker run rafaelsoares/archlinux:2016-04-09-devel /bin/sh -c "makepkg -s --noconfirm --noprogressbar"
+  tags:
+    - arch
+    - shell-docker
 
 # Shell Runner - Building a docker image using Dockerfile (upstream repository or own PKGBUILD)
 job_docker_build:
@@ -38,7 +49,7 @@ job_docker_build:
     - docker build -t package-query .
   tags:
     - arch
-    - shell
+    - shell-docker
 
 # Shell Runner - Building on Arch Linux Hosts
 job_docker_build:
@@ -48,3 +59,12 @@ job_docker_build:
   tags:
     - arch
     - shell
+
+# Shell Runner - Building on Arch Linux Guests
+job_docker_build:
+  stage: build
+  script:
+    - makepkg -s --noconfirm --noprogressbar
+  tags:
+    - arch
+    - virtualbox
