@@ -4,7 +4,7 @@ stages:
   - deploy
 
 # Docker Runner - Cloning upstream repository
-job_makepkg:
+job_docker_upstream:
   stage: build
   script:
     - /bin/sh -c "cd /home/guest && git clone https://aur.archlinux.org/package-query.git && cd package-query && makepkg -sf"
@@ -13,7 +13,7 @@ job_makepkg:
     - docker
 
 # Docker Runner - Building your own PKGBUILD
-job_makepkg:
+job_docker_pkgbuild:
   stage: build
   script:
     - /bin/sh -c "makepkg -s --noconfirm --noprogressbar"
@@ -22,7 +22,7 @@ job_makepkg:
     - docker
 
 # Shell Runner - Pulling and running a docker image (Cloning upstream repository)
-job_docker_build:
+job_shell_docker_upstream:
   stage: build
   script:
     - docker pull rafaelsoares/archlinux:2016-04-09-devel
@@ -32,18 +32,17 @@ job_docker_build:
     - shell-docker
 
 # Shell Runner - Pulling and running a docker image (Building your own PKGBUILD)
-# Requires volumes = ["/home/gitlab-runner/builds:/:rw"] (Needs testing)
-job_docker_build:
+job_shell_docker_pkgbuild:
   stage: build
   script:
     - docker pull rafaelsoares/archlinux:2016-04-09-devel
-    - docker run rafaelsoares/archlinux:2016-04-09-devel /bin/sh -c "makepkg -s --noconfirm --noprogressbar"
+    - docker run rafaelsoares/archlinux:2016-04-09-devel -v $CI_PROJECT_DIR:/home/guest/build:rw /bin/sh -c "cd /home/guest/build && makepkg -s --noconfirm --noprogressbar"
   tags:
     - arch
     - shell-docker
 
 # Shell Runner - Building a docker image using Dockerfile (upstream repository or own PKGBUILD)
-job_docker_build:
+job_shell_docker_build:
   stage: build
   script:
     - docker build -t package-query .
@@ -52,7 +51,7 @@ job_docker_build:
     - shell-docker
 
 # Shell Runner - Building on Arch Linux Hosts
-job_docker_build:
+job_shell:
   stage: build
   script:
     - makepkg -s --noconfirm --noprogressbar
@@ -61,7 +60,7 @@ job_docker_build:
     - shell
 
 # Shell Runner - Building on Arch Linux Guests
-job_docker_build:
+job_virtualbox:
   stage: build
   script:
     - makepkg -s --noconfirm --noprogressbar
